@@ -177,6 +177,7 @@ module Pdns
   class Pipe < Connector
     def run
       begin
+        STDOUT.sync=true
         mainloop STDIN,STDOUT
       rescue SystemExit, Interrupt
       end
