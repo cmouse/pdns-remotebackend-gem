@@ -1,1 +1,1 @@
-require 'pdns_remotebackend'
+require 'pdns/remotebackend'
