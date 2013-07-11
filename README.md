@@ -23,9 +23,12 @@ is called, the Handler class needs to have method with name do\_&lt;name-of-meth
 
 To get starting, subclass Pdns::Remotebackend::Handler. You need to override at least 'do\_lookup(args)' method. You are passed in arguments as
 
-args = { "qname" => "www.example.com", "qtype" => "ANY|SOA", .. + other stuff }
+    args = { "qname" => "www.example.com", "qtype" => "ANY|SOA", .. + other stuff }
 
-You are expected to modify object attribute 'result' to contain an array of records. The easiest way is to do result = [ record("www.example.com","A","127.0.01") ]
+You are expected to modify object attribute 'result' to contain an array of records. The easiest way is to do 
+
+    result = [ record("www.example.com","A","127.0.01") ]
+
 This will construct a reply array with one resource record. 
 
 Some methods expect non-array output, you can provide result = true or result = 1 etc. for these. 
@@ -36,8 +39,8 @@ Should you need some parameters passed to the remotebackend connection string, y
 
 To start a pipe or unix server, do
 
-  Pdns::Remotebackend::Pipe.new(MyHandlerClass).run
-  Pdns::Remotebackend::Unix(MyHandlerClass, { :path => "/path/to/socket").run
+    Pdns::Remotebackend::Pipe.new(MyHandlerClass).run
+    Pdns::Remotebackend::Unix(MyHandlerClass, { :path => "/path/to/socket").run
 
 ## Contributing
 
