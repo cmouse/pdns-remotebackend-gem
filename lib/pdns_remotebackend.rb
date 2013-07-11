@@ -1,48 +1,32 @@
 require 'json'
+require 'pdns_remotebackend/pipe'
+require 'pdns_remotebackend/unix'
 
 module PdnsRemotebackend 
-  class Result
-    @_result = false
-
-    def <<(data)
-      if (@_result.class == Array) 
-         @_result << data
-      else 
-         @_result = [data]
-      end
-    end
-
-    def set(value)
-      @_result = value
-    end
-
-    def to_json
-      @_result.to_json
-    end
-  end
-  
   class Handler
-     @_result = Result.new
-     @log = []
-  
+     attr_accessor :log, :result, :ttl
+
      def initialize
+       @log = []
+       @result = false
+       @ttl = 300
      end
-  
-     def result=(value)
-       @_result.set(value)
-     end
-    
-     def result
-       @_result
+ 
+     def record_prio_ttl(qtype,qname,content,prio,ttl,auth=1)
+        {:qtype => qtype, :qname => qname, :content => content, :priority => prio, :ttl => ttl, :auth => auth}
      end
 
-     def rr(qname, qtype, content, ttl, priority = 0, auth = 1, domain_id = -1)
-        {:qname => qname, :qtype => qtype, :content => content, :ttl => ttl.to_i, :priority => priority.to_i, :auth => auth.to_i, :domain_id => domain_id.to_i}
+     def record_prio(qtype,qname,content,prio,auth=1)
+        record_prio_ttl(qtype,qname,content,prio,@ttl,auth)
+     end
+
+     def record(qtype,qname,content,auth=1)
+        record_prio_ttl(qtype,qname,content,0,@ttl,auth)
      end
   
      def do_initialize(*args)
-       log << "Test bench initialized"
-       result = true
+       @log << "Test bench initialized"
+       @result = true
      end
   
      def do_lookup(args) 
