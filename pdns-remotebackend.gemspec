@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "pdns-remotebackend"
   gem.require_paths = ["lib"]
-  gem.version       = PdnsRemotebackend::VERSION
+  gem.version       = Pdns::Remotebackend::VERSION
 
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'rspec'
