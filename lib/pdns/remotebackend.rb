@@ -146,56 +146,55 @@ module Pdns
     #
     # @param [Socket] reader Socket to read from'
     # @param [Socket] writer Socket to write to
-    protected 
     def mainloop(reader,writer)
       h = @handler.new
       
-      begin
-        reader.each_line do |line|
-          # expect json
-          input = {}
-          line = line.strip
-          next if line.empty?
-          begin
-            input = JSON.parse(line)
-            method = "do_#{input["method"].downcase}"
-            args = input["parameters"] || {}
-
-            h.result = false
-            h.log = []
-
-            if h.respond_to?(method.to_sym) == false
-               res = false
-            else
-               h.send(method,args)
-            end
-
-            writer.puts ({:result => h.result, :log => h.log}).to_json
-          rescue JSON::ParserError
-            writer.puts ({:result => false, :log => "Cannot parse input #{line}"}).to_json
-            next
+      reader.each_line do |line|
+        # expect json
+        input = {}
+        line = line.strip
+        next if line.empty?
+        begin
+          input = JSON.parse(line)
+          method = "do_#{input["method"].downcase}"
+          args = input["parameters"] || {}
+          h.result = false
+          h.log = []
+          if h.respond_to?(method.to_sym) == false
+            res = false
+          else
+            h.send(method,args)
           end
+          writer.puts ({:result => h.result, :log => h.log}).to_json
+        rescue JSON::ParserError
+          writer.puts ({:result => false, :log => "Cannot parse input #{line}"}).to_json
+          next
         end
-      rescue SystemExit, Interrupt
-      end 
+      end
     end
   end
 
   class Pipe < Connector
     def run
-      mainloop STDIN,STDOUT
+      begin
+        mainloop STDIN,STDOUT
+      rescue SystemExit, Interrupt
+      end
     end
   end
 
   class Unix < Connector
     def run
-      @path = options[:path] || "/tmp/remotebackend.sock"
-      Socket.unix_server_loop(@path) do |sock, client_addrinfo| 
-        begin 
-           mainloop sock, sock
-        ensure
-           sock.close
+      @path = @options[:path] || "/tmp/remotebackend.sock"
+      begin 
+        Socket.unix_server_loop(@path) do |sock, client_addrinfo| 
+          begin 
+            mainloop sock, sock
+          ensure
+            sock.close
+          end
         end
+      rescue SystemExit, Interrupt 
       end
     end
   end
