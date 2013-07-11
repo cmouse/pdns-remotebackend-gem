@@ -7,23 +7,48 @@ module Pdns
   class Handler
      attr_accessor :log, :result, :ttl
 
+     # Initialize with defaults values
      def initialize
        @log = []
        @result = false
        @ttl = 300
        @params = {}
      end
- 
-     def record_prio_ttl(qtype,qname,content,prio,ttl,auth=1)
+
+     # Generates a hash of resource record
+     # 
+     # @param [String] qname name of record
+     # @param [String] qtype type of record
+     # @param [String] content record contents
+     # @param [Integer] prio Record priority
+     # @param [Integer] ttl Record TTL
+     # @param [Integer] auth Whether we are authoritative for the record or not
+     # @return [Hash] A resource record hash
+     def record_prio_ttl(qname,qtype,content,prio,ttl,auth=1)
        {:qtype => qtype, :qname => qname, :content => content, :priority => prio, :ttl => ttl, :auth => auth}
      end
 
-     def record_prio(qtype,qname,content,prio,auth=1)
-       record_prio_ttl(qtype,qname,content,prio,@ttl,auth)
+     # Generates a hash of resource record
+     #
+     # @param [String] qname name of record
+     # @param [String] qtype type of record
+     # @param [String] content record contents
+     # @param [Integer] prio Record priority
+     # @param [Integer] auth Whether we are authoritative for the record or not
+     # @return [Hash] A resource record hash
+     def record_prio(qname,qtype,content,prio,auth=1)
+       record_prio_ttl(qname,qtype,content,prio,@ttl,auth)
      end
 
-     def record(qtype,qname,content,auth=1)
-       record_prio_ttl(qtype,qname,content,0,@ttl,auth)
+     # Generates a hash of resource record
+     #
+     # @param [String] qname name of record
+     # @param [String] qtype type of record
+     # @param [String] content record contents
+     # @param [Integer] auth Whether we are authoritative for the record or not
+     # @return [Hash] A resource record hash
+     def record(qname,qtype,content,auth=1)
+       record_prio_ttl(qname,qtype,content,0,@ttl,auth)
      end
   
      def do_initialize(args)
@@ -117,14 +142,11 @@ module Pdns
       @options = options
     end
 
-    def open
-      [STDIN,STDOUT]
-    end
-
-    def close
-    end
-
-    def mainloop
+    # Reads one line at a time from remotebackend, and calls approriate method 
+    #
+    # @param [Socket] reader Socket to read from'
+    # @param [Socket] writer Socket to write to
+    def mainloop(reader,writer)
       h = @handler.new
       reader,writer = self.open
       
@@ -158,18 +180,20 @@ module Pdns
         end
       rescue SystemExit, Interrupt
       end 
-      self.close
     end
   end
  end
 
  class Pipe
    def run
-     mainloop
+     mainloop STDIN,STDOUT
    end
  end
 
  class Unix 
+    def open
+    end
+
     def run
       @path = options[:path] || "/tmp/remotebackend.sock"
       Socket.unix_server_loop(@path) do |sock, client_addrinfo| 
