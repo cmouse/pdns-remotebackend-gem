@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["cmouse@desteem.org"]
   gem.description   = %q{This gem provides a base class and helpers for writing remotebackend servers for pipe/unix/. It is intended to make using remotebackend easier. For http support, see pdns-remotebackend-http.}
   gem.summary       = %q{This gem provides a base class and helpers for writing remotebackend servers for pipe/unix/http post/json modes}
-  gem.homepage      = "http://github.com/cmouse/pdns-remotebackend"
+  gem.homepage      = "http://github.com/cmouse/pdns-remotebackend-gem"
   gem.license       = "MIT"
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
