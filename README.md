@@ -45,7 +45,7 @@ Should you need some parameters passed to the remotebackend connection string, y
 To start a pipe or unix server, do
 
     Pdns::Remotebackend::Pipe.new(MyHandlerClass).run
-    Pdns::Remotebackend::Unix(MyHandlerClass, { :path => "/path/to/socket").run
+    Pdns::Remotebackend::Unix(MyHandlerClass, { :path => "/path/to/socket"} ).run
 
 ## Reference
 
