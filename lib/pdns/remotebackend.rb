@@ -51,7 +51,7 @@ module Pdns
        record_prio_ttl(qname,qtype,content,0,@ttl,auth)
      end
   
-     def do_initialize(args)
+     def do_initialize(*args)
        @params = args
        @log << "PowerDNS ruby remotebackend version #{Pdns::Remotebackend::VERSION} initialized"
        @result = true
@@ -182,27 +182,24 @@ module Pdns
       end 
     end
   end
- end
 
- class Pipe
-   def run
-     mainloop STDIN,STDOUT
-   end
- end
-
- class Unix 
-    def open
+  class Pipe
+    def run
+      mainloop STDIN,STDOUT
     end
+  end
 
+  class Unix 
     def run
       @path = options[:path] || "/tmp/remotebackend.sock"
       Socket.unix_server_loop(@path) do |sock, client_addrinfo| 
-         begin 
-            mainloop sock, sock
-         ensure
-            sock.close
-         end
+        begin 
+           mainloop sock, sock
+        ensure
+           sock.close
+        end
       end
     end
+  end
  end
 end
