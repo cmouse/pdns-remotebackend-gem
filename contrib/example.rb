@@ -28,9 +28,9 @@ class RequestHandler < Pdns::Remotebackend::Handler
   def do_getdomainmetadata(args)
      if args["name"] == "example.com"
        if args["kind"] == "NSEC3NARROW"
-           result = "1"
+           @result = "1"
        elsif args["kind"] == "NSEC3PARAM"
-           result = "1 1 1 fe"
+           @result = "1 1 1 fe"
        end
      end
   end
@@ -40,7 +40,7 @@ class RequestHandler < Pdns::Remotebackend::Handler
   ## generate these
   def do_getdomainkeys(args)
      if args["name"] == "example.com"
-        result = [ 
+        @result = [ 
           {
              "id" => 1,
              "flags" => 257,
@@ -81,26 +81,26 @@ Coefficient: 5lP9IFknvFgaXKCs8MproehHSFhFTWac4557HIn03KrnlGOKDcY6DC/vgu1e42bEZ4J
   ## and dynamic A record for anything else in example.com domain 
   def do_lookup(args)
      if args["qname"] == "example.com" and args["qtype"].downcase == "soa"
-       result = [
-          record("SOA","example.com", "sns.dns.icann.org noc.dns.icann.org 2013012485 7200 3600 1209600 3600"),
+       @result = [
+          record("example.com", "SOA", "sns.dns.icann.org noc.dns.icann.org 2013012485 7200 3600 1209600 3600"),
               ]
      elsif args["qname"] == "example.com" and args["qtype"].downcase == "any"
-       result = [ 
-          record("SOA","example.com", "sns.dns.icann.org noc.dns.icann.org 2013012485 7200 3600 1209600 3600"),
-          record("NS","example.com","sns.dns.icann.org"),
-          record_prio("MX","example.com","test.example.com",10)
+       @result = [ 
+          record("SOA","example.com", "SOA", "sns.dns.icann.org noc.dns.icann.org 2013012485 7200 3600 1209600 3600"),
+          record("example.com", "NS", "sns.dns.icann.org"),
+          record_prio("example.com", "MX", "test.example.com",10)
               ]
      elsif args["qname"] == "test.example.com" and args["qtype"].downcase == "any"
-       result = [
-          record("A","test.example.com","127.0.0.1")
+       @result = [
+          record("test.example.com", "A", "127.0.0.1")
        ]
      elsif args["qname"] =~ /(.*)\.example\.com$/ and args["qtype"].downcase == "any"
        ip = 0
        $1.downcase.each_byte do |b| ip = ip + b end
        ip_2 = ip/256
        ip = ip%256
-       result = [
-          record("A",args["qname"], "127.0.#{ip_2}.#{ip}")
+       @result = [
+          record(args["qname"], "A", "127.0.#{ip_2}.#{ip}")
        ]
      end
   end
@@ -111,11 +111,11 @@ Coefficient: 5lP9IFknvFgaXKCs8MproehHSFhFTWac4557HIn03KrnlGOKDcY6DC/vgu1e42bEZ4J
   ## for sake of having an example. Do not do ths in production.
   def do_list(args)
      if args["zonename"] == "example.com"
-       result = [
-          record("SOA","example.com", "sns.dns.icann.org noc.dns.icann.org 2013012485 7200 3600 1209600 3600"),
-          record("NS","example.com","sns.dns.icann.org"),
-          record_prio("MX","example.com","test.example.com",10),
-          record("A","test.example.com","127.0.0.1")
+       @result = [
+          record("example.com", "SOA", "sns.dns.icann.org noc.dns.icann.org 2013012485 7200 3600 1209600 3600"),
+          record("example.com", "NS", "sns.dns.icann.org"),
+          record_prio("example.com", "MX", "test.example.com",10),
+          record("test.example.com", "A", "127.0.0.1")
        ]
      end
   end

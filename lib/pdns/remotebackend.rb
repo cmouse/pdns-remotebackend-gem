@@ -146,9 +146,9 @@ module Pdns
     #
     # @param [Socket] reader Socket to read from'
     # @param [Socket] writer Socket to write to
+    protected 
     def mainloop(reader,writer)
       h = @handler.new
-      reader,writer = self.open
       
       begin
         reader.each_line do |line|
@@ -159,17 +159,15 @@ module Pdns
           begin
             input = JSON.parse(line)
             method = "do_#{input["method"].downcase}"
-            args = input["parameters"] || []
+            args = input["parameters"] || {}
 
             h.result = false
             h.log = []
- 
+
             if h.respond_to?(method.to_sym) == false
                res = false
-            elsif args.size > 0
-               h.send(method,args)
             else
-               h.send(method)
+               h.send(method,args)
             end
 
             writer.puts ({:result => h.result, :log => h.log}).to_json
@@ -183,13 +181,13 @@ module Pdns
     end
   end
 
-  class Pipe
+  class Pipe < Connector
     def run
       mainloop STDIN,STDOUT
     end
   end
 
-  class Unix 
+  class Unix < Connector
     def run
       @path = options[:path] || "/tmp/remotebackend.sock"
       Socket.unix_server_loop(@path) do |sock, client_addrinfo| 
