@@ -1,3 +1,5 @@
-module PdnsRemotebackend
-  VERSION = "0.0.2"
+module Pdns
+ module Remotebackend
+  VERSION = "0.0.3"
+ end
 end
