@@ -51,16 +51,40 @@ To start a pipe or unix server, do
 
 In addition to stubs for remotebackend, the Pdns::Remotebackend::Handler has following helpers for making records
 
-    def record_prio_ttl(qtype,qname,content,prio,ttl,auth=1)
+    # Generates a hash of resource record
+    #
+    # @param [String] qname name of record
+    # @param [String] qtype type of record
+    # @param [String] content record contents
+    # @param [Integer] prio Record priority
+    # @param [Integer] ttl Record TTL
+    # @param [Integer] auth Whether we are authoritative for the record or not
+    # @return [Hash] A resource record hash
+    def record_prio_ttl(qname,qtype,content,prio,ttl,auth=1)
       {:qtype => qtype, :qname => qname, :content => content, :priority => prio, :ttl => ttl, :auth => auth}
     end
-
-    def record_prio(qtype,qname,content,prio,auth=1)
-      record_prio_ttl(qtype,qname,content,prio,@ttl,auth)
+    
+    # Generates a hash of resource record
+    #
+    # @param [String] qname name of record
+    # @param [String] qtype type of record
+    # @param [String] content record contents
+    # @param [Integer] prio Record priority
+    # @param [Integer] auth Whether we are authoritative for the record or not
+    # @return [Hash] A resource record hash
+    def record_prio(qname,qtype,content,prio,auth=1)
+      record_prio_ttl(qname,qtype,content,prio,@ttl,auth)
     end
-
-    def record(qtype,qname,content,auth=1)
-      record_prio_ttl(qtype,qname,content,0,@ttl,auth)
+    
+    # Generates a hash of resource record
+    #
+    # @param [String] qname name of record
+    # @param [String] qtype type of record
+    # @param [String] content record contents
+    # @param [Integer] auth Whether we are authoritative for the record or not
+    # @return [Hash] A resource record hash
+    def record(qname,qtype,content,auth=1)
+      record_prio_ttl(qname,qtype,content,0,@ttl,auth)
     end
 
 ## Contributing
