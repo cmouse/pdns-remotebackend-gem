@@ -1,6 +1,7 @@
 require 'json'
 
-module Pdns::Remotebackend 
+module Pdns
+ module Remotebackend 
   class Handler
      attr_accessor :log, :result, :ttl
 
@@ -148,4 +149,5 @@ module Pdns::Remotebackend
       end 
     end
   end
+ end
 end
