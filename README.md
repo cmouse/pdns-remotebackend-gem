@@ -31,9 +31,14 @@ You are expected to modify object attribute 'result' to contain an array of reco
 
 This will construct a reply array with one resource record. 
 
-Some methods expect non-array output, you can provide result = true or result = 1 etc. for these. 
+Some methods expect non-array output, you can provide
 
-If you wish to log something, use @log &lt;&lt; "something I want logged".  
+    result = true
+    result = { :foo => :bar } 
+
+If you wish to log something, use 
+
+    log &lt;&lt; "something I want logged".  
 
 Should you need some parameters passed to the remotebackend connection string, you can always have a look at @parameters, which contains them.  
 
