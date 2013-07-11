@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/pdns_remotebackend/version', __FILE__)
+require File.expand_path('../lib/pdns/remotebackend/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Aki Tuomi"]
@@ -11,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.name          = "pdns_remotebackend"
+  gem.name          = "pdns/remotebackend"
   gem.require_paths = ["lib"]
   gem.version       = PdnsRemotebackend::VERSION
 
