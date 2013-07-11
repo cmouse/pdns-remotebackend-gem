@@ -42,6 +42,22 @@ To start a pipe or unix server, do
     Pdns::Remotebackend::Pipe.new(MyHandlerClass).run
     Pdns::Remotebackend::Unix(MyHandlerClass, { :path => "/path/to/socket").run
 
+## Reference
+
+In addition to stubs for remotebackend, the Pdns::Remotebackend::Handler has following helpers for making records
+
+    def record_prio_ttl(qtype,qname,content,prio,ttl,auth=1)
+      {:qtype => qtype, :qname => qname, :content => content, :priority => prio, :ttl => ttl, :auth => auth}
+    end
+
+    def record_prio(qtype,qname,content,prio,auth=1)
+      record_prio_ttl(qtype,qname,content,prio,@ttl,auth)
+    end
+
+    def record(qtype,qname,content,auth=1)
+      record_prio_ttl(qtype,qname,content,0,@ttl,auth)
+    end
+
 ## Contributing
 
 1. Fork it
