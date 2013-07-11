@@ -1,3 +1,4 @@
+require 'socket'
 require 'json'
 require 'pdns/remotebackend/version'
 
@@ -10,6 +11,7 @@ module Pdns
        @log = []
        @result = false
        @ttl = 300
+       @params = {}
      end
  
      def record_prio_ttl(qtype,qname,content,prio,ttl,auth=1)
@@ -24,7 +26,8 @@ module Pdns
        record_prio_ttl(qtype,qname,content,0,@ttl,auth)
      end
   
-     def do_initialize(*args)
+     def do_initialize(args)
+       @params = args
        @log << "PowerDNS ruby remotebackend version #{Pdns::Remotebackend::VERSION} initialized"
        @result = true
      end
@@ -108,17 +111,25 @@ module Pdns
      end
   end
 
-  class Pipe
+  class Connector 
     def initialize(klass, options = {})
       @handler = klass
+      @options = options
     end
-  
-    def run
+
+    def open
+      [STDIN,STDOUT]
+    end
+
+    def close
+    end
+
+    def mainloop
       h = @handler.new
+      reader,writer = self.open
       
-      STDOUT.sync = true
       begin
-        STDIN.each_line do |line|
+        reader.each_line do |line|
           # expect json
           input = {}
           line = line.strip
@@ -139,15 +150,35 @@ module Pdns
                h.send(method)
             end
 
-            puts ({:result => h.result, :log => h.log}).to_json
+            writer.puts ({:result => h.result, :log => h.log}).to_json
           rescue JSON::ParserError
-            puts ({:result => false, :log => "Cannot parse input #{line}"}).to_json
+            writer.puts ({:result => false, :log => "Cannot parse input #{line}"}).to_json
             next
           end
         end
       rescue SystemExit, Interrupt
       end 
+      self.close
     end
   end
+ end
+
+ class Pipe
+   def run
+     mainloop
+   end
+ end
+
+ class Unix 
+    def run
+      @path = options[:path] || "/tmp/remotebackend.sock"
+      Socket.unix_server_loop(@path) do |sock, client_addrinfo| 
+         begin 
+            mainloop sock, sock
+         ensure
+            sock.close
+         end
+      end
+    end
  end
 end
