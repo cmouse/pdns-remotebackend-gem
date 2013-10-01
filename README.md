@@ -1,6 +1,6 @@
 # Pdns/Remotebackend
 
-This is a helper for PowerDNS remotebackend. It lets you create a backend with less hassle. 
+This is a helper for PowerDNS remotebackend. It lets you create a backend with less hassle. Also supports pipe backend.
 
 ## Installation
 
@@ -46,6 +46,13 @@ To start a pipe or unix server, do
 
     Pdns::Remotebackend::Pipe.new(MyHandlerClass).run
     Pdns::Remotebackend::Unix(MyHandlerClass, { :path => "/path/to/socket"} ).run
+
+To use it with PowerDNS pipe backend, use
+
+    Pdns::Remotebackend::Pipe.new(MyHandlerClass, { :abi => :pipe }).run
+    Pdns::Remotebackend::Unix(MyHandlerClass, { :path => "/path/to/socket", :abi => :pipe } ).run
+
+In this mode, it supports do\_lookup and do\_list. 
 
 ## Reference
 
