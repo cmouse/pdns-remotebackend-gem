@@ -86,7 +86,7 @@ Coefficient: 5lP9IFknvFgaXKCs8MproehHSFhFTWac4557HIn03KrnlGOKDcY6DC/vgu1e42bEZ4J
               ]
      elsif args["qname"] == "example.com" and args["qtype"].downcase == "any"
        @result = [ 
-          record("SOA","example.com", "SOA", "sns.dns.icann.org noc.dns.icann.org 2013012485 7200 3600 1209600 3600"),
+          record("example.com", "SOA", "sns.dns.icann.org noc.dns.icann.org 2013012485 7200 3600 1209600 3600"),
           record("example.com", "NS", "sns.dns.icann.org"),
           record_prio("example.com", "MX", "test.example.com",10)
               ]
