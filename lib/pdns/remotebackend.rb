@@ -142,11 +142,123 @@ module Pdns
       @options = options
     end
 
+    # Reads one line at a time from pipebackend, and calls approriate method
+    #
+    # @param [Socket] reader Socket to read from
+    # @param [Socket] writer Socket to write to
+    def mainloop3(reader,writer)
+      h = @handler.new
+      state = :init
+      abi = 1
+      last_soa_name = nil
+
+      reader.each_line do |line|
+        h.log = []
+        h.result = false
+
+        # cannot continue anymore
+        if state == :fail
+          next
+        end
+
+        input = {}
+        line = line.strip
+        if (state == :init) 
+          if line.match "HELO[ \t]*([0-9])"
+            abi = $2.to_i
+            # synthesize empty init
+            h.do_initialize(input)
+
+            if h.result == false
+               state = :fail
+               h.log.each do |l| 
+                 writer.puts "LOG\t#{l}"
+               end
+               writer.puts "FAIL"
+            else
+               writer.puts "OK\tPowerDNS ruby remotebackend version #{Pdns::Remotebackend::VERSION} initialized"
+               state = :main 
+            end
+          else
+            writer.puts "FAIL"
+            state = :fail
+          end
+          next
+        end
+ 
+        # parse input
+        query = line.split /[\t ]+/
+        input["method"] = query[0]
+        if input["method"] == "Q"
+           input["method"] = "lookup"
+           input["parameters"] = {
+               "qname" => query[1], "qclass" => query[2],
+               "qtype" => query[3], "domain_id" => query[4].to_i,
+               "zone_id" => query[4].to_i, "remote" => query[5]
+           }
+           if abi > 1 
+             input["parameters"]["local"] = query[6]
+           end
+           if abi > 2
+             input["parameters"]["edns-subnet"] = query[7]
+           end
+           if input["parameters"]["qtype"] == "SOA"
+             last_soa_name = input["parameters"]["qname"]
+           end
+        elsif input["method"] == "AXFR"
+           input["method"] = "list"
+           input["parameters"] = { "zonename" => last_soa_name, "domain_id" => line[1].to_i }
+        else
+           writer.puts "FAIL"
+           next
+        end
+
+        method = "do_#{input["method"]}"
+        # try to call
+        if h.respond_to?(method.to_sym) == true
+          h.send(method, input["parameters"])
+        else
+          writer.puts "FAIL"
+          next
+        end
+
+        if (h.result != false) 
+          h.result.each do |r|
+             if r.has_key? :scopemask == false
+                r[:scopemask] = 0
+             end
+             if r.has_key?(:domain_id) == false
+                r[:domain_id] = input["parameters"]["domain_id"]
+             end
+
+             # fix content to contain prio if needed
+             if ["MX", "SRV", "NAPTR"].include? r[:qtype].upcase
+                if r.has_key?("prio")
+                   r[:content] = "#{r[:prio].to_i} #{r[:content]}"
+                else
+                   r[:content] = "0 #{r[:content]}"
+                end
+             end
+             if (abi < 3)
+                writer.puts "DATA\t#{r[:qname]}\tIN\t#{r[:qtype]}\t#{r[:ttl]}\t#{r[:domain_id]}\t#{r[:content]}"
+             else
+                writer.puts "DATA\t#{r[:scopemask]}\t#{r[:auth]}\t#{r[:qname]}\tIN\t#{r[:qtype]}\t#{r[:ttl]}\t#{r[:domain_id]}\t#{r[:content]}"
+             end
+          end
+        end
+
+        h.log.each do |l|
+          writer.puts "LOG\t#{l}"
+        end
+        writer.puts "END"
+      end
+    end
+
     # Reads one line at a time from remotebackend, and calls approriate method 
     #
-    # @param [Socket] reader Socket to read from'
+    # @param [Socket] reader Socket to read from
     # @param [Socket] writer Socket to write to
-    def mainloop(reader,writer)
+    def mainloop4(reader,writer)
       h = @handler.new
       
       reader.each_line do |line|
@@ -178,7 +290,11 @@ module Pdns
     def run
       begin
         STDOUT.sync=true
-        mainloop STDIN,STDOUT
+        if (@options.has_key? :abi and @options[:abi].to_sym == :pipe) 
+            mainloop3 STDIN,STDOUT
+        else
+            mainloop4 STDIN,STDOUT
+        end
       rescue SystemExit, Interrupt
       end
     end
@@ -190,7 +306,11 @@ module Pdns
       begin 
         Socket.unix_server_loop(@path) do |sock, client_addrinfo| 
           begin 
-            mainloop sock, sock
+            if (@options.has_key? :abi and @options[:abi].to_sym == :pipe)
+               mainloop3 sock,sock
+            else
+               mainloop4 sock,sock
+            end
           ensure
             sock.close
           end
