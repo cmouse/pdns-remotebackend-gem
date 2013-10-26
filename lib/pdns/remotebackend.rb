@@ -52,7 +52,7 @@ module Pdns
      end
   
      def do_initialize(*args)
-       @params = args
+       @params = args[0]
        @log << "PowerDNS ruby remotebackend version #{Pdns::Remotebackend::VERSION} initialized"
        @result = true
      end
